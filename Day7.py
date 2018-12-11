@@ -1,44 +1,11 @@
-class Step:
-    def __init__(self, letter):
-        self.name = letter
-        self.waiting = []
-        self.done = False
-
-    def __str__(self):
-        return str(self.name)
-    def __repr__(self):
-        return str(self.name)
-
-    def __eq__(self, o):
-        return (self.name == o.name)
-
-    def __ne__(self, o):
-        return not (self.name == o.name)
-
-    def __lt__(self, o):
-        return (self.name < o.name)
-
-    def __le__(self, o):
-        return (self.name <= o.name)
-
-    def __gt__(self, o):
-        return (self.name > o.name)
-
-    def __ge__(self, o):
-        return (self.name >= o.name)
-
-    def addWaiting(self, otherStep):
-        self.waiting.append(otherStep)
-
-    def checkReady(self):
-        ready = True
-        for step in self.waiting:
-            ready = ready and step.done
-        return ready
+from Day7Obj import Step
+from Day7Obj import Elf
 
 require = open('D7.txt', 'r').readlines()
 for i in range(0,len(require)):
     require[i] = require[i].split(' ')
+
+
 
 steps = []
 for line in require:
@@ -53,18 +20,41 @@ for line in require:
     steps[ind2].addWaiting(steps[ind1])
 
 steps.sort()
+
+elves = []
+for i in range(0,5):
+    elves.append(Elf(i))
 order = []
+time = 0
 
-i = 0
+def claimNew(elf):
+    global steps
+    i = 0
+    while i < len(steps) and not elf.working:
+        if (not (steps[i].done)) and (not (steps[i].active)) and steps[i].checkReady():
+            steps[i].active = True
+            elf.working = True
+            elf.curr = steps[i]
+        else:
+            i += 1
+
 while not (len(order) == len(steps)):
-    if (not (steps[i].done)) and steps[i].checkReady():
-        order.append(steps[i])
-        steps[i].done = True
-        i = 0
-    else:
-        i = (i + 1) % len(steps)
+    for elf in elves:
+        if elf.working:
+            elf.curr.time -= 1
+            if elf.curr.time <= 0:
+                elf.curr.active = False
+                elf.curr.done = True
+                order.append(elf.curr)
+                elf.working = False
+                claimNew(elf)
+        else:
+            claimNew(elf)
+    time += 1
+print time -1
 
-str_order = ''
-for step in order:
-    str_order += step.name
-print str_order
+
+# str_order = ''
+# for step in order:
+#     str_order += step.name
+# print str_order
